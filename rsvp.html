@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RSVP — Tyler &amp; Maggie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Jost:wght@300;400;500;600&family=Parisienne&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header>
+  <div class="nav-wrap">
+    <a href="index.html" class="brand">T &amp; M</a>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">&#9776;</button>
+    <nav>
+      <ul id="navList">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="schedule.html">Schedule</a></li>
+        <li><a href="registry.html">Registry</a></li>
+        <li><a href="gallery.html">Gallery</a></li>
+        <li><a href="faqs.html">FAQs</a></li>
+        <li><a href="rsvp.html">RSVP</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<div class="page-banner">
+  <p class="eyebrow">Kindly Reply</p>
+  <h1>RSVP</h1>
+  <p>Please respond by March 15, 2027</p>
+</div>
+
+<section id="rsvp">
+  <div class="rsvp-box">
+    <div class="seal">T&amp;M</div>
+    <form id="rsvpForm">
+      <p class="rsvp-section-label">Primary Contact</p>
+      <div class="form-row">
+        <label for="fullName">Full Name</label>
+        <input type="text" id="fullName" name="fullName" placeholder="e.g. John Doe" required>
+      </div>
+      <div class="two-col">
+        <div class="form-row">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" placeholder="you@example.com" required>
+        </div>
+        <div class="form-row">
+          <label for="phone">Phone Number</label>
+          <input type="text" id="phone" name="phone" placeholder="(555) 123-4567" required>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="form-row">
+          <label for="primaryAge">Your Age</label>
+          <input type="number" id="primaryAge" name="primaryAge" min="0" max="120" placeholder="e.g. 29">
+        </div>
+        <div class="form-row">
+          <label>Will you be joining us?</label>
+          <div class="radio-group">
+            <label><input type="radio" name="attending" value="yes" checked><span>Joyfully Accepts</span></label>
+            <label><input type="radio" name="attending" value="no"><span>Regretfully Declines</span></label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label for="guestCount">Total Number of Guests (including you)</label>
+        <input type="number" id="guestCount" name="guestCount" min="1" max="8" value="1">
+      </div>
+
+      <div id="additionalGuests"></div>
+
+      <p class="rsvp-section-label">Anything Else</p>
+      <div class="form-row">
+        <label for="message">A Note for the Couple (optional)</label>
+        <textarea id="message" name="message" placeholder="Well wishes, song requests, dietary notes..."></textarea>
+      </div>
+      <button type="submit" class="btn rsvp-submit">Send RSVP</button>
+      <p class="form-msg" id="formMsg">Thank you! Your reply has been recorded with love. 🌿</p>
+    </form>
+  </div>
+</section>
+
+<footer>
+  <span class="script">Tyler &amp; Maggie</span>
+  <p>May 15, 2027 &middot; Cielo at Castle Pines </p>
+  <p>We can't wait to celebrate with you.</p>
+  <nav>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="schedule.html">Schedule</a></li>
+      <li><a href="registry.html">Registry</a></li>
+      <li><a href="gallery.html">Gallery</a></li>
+      <li><a href="faqs.html">FAQs</a></li>
+      <li><a href="rsvp.html">RSVP</a></li>
+    </ul>
+  </nav>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
