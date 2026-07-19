@@ -30,26 +30,27 @@
 <div class="page-banner">
   <p class="eyebrow">Kindly Reply</p>
   <h1>RSVP</h1>
-  <p>Please respond by March 15, 2027</p>
+  <p>Please respond by February 15, 2027</p>
 </div>
 
 <section id="rsvp">
   <div class="rsvp-box">
-    <div class="seal">T&amp;M</div>
     <form id="rsvpForm">
       <p class="rsvp-section-label">Primary Contact</p>
       <div class="form-row">
         <label for="fullName">Full Name</label>
-        <input type="text" id="fullName" name="fullName" placeholder="e.g. John Doe" required>
+        <input type="text" id="fullName" name="fullName" placeholder="e.g. John Smith" required>
       </div>
       <div class="two-col">
         <div class="form-row">
           <label for="email">Email</label>
           <input type="email" id="email" name="email" placeholder="you@example.com" required>
+          <span class="field-error" id="emailError">Please enter a valid email address.</span>
         </div>
         <div class="form-row">
           <label for="phone">Phone Number</label>
-          <input type="text" id="phone" name="phone" placeholder="(555) 123-4567" required>
+          <input type="tel" id="phone" name="phone" placeholder="(555) 123-4567" required>
+          <span class="field-error" id="phoneError">Please enter a valid phone number.</span>
         </div>
       </div>
       <div class="two-col">
@@ -86,8 +87,8 @@
 
 <footer>
   <span class="script">Tyler &amp; Maggie</span>
-  <p>May 15, 2027 &middot; Cielo at Castle Pines </p>
-  <p>We can't wait to celebrate with you.</p>
+  <p>May 15, 2027 &middot; Cielo at Castle Pines</p>
+  <p>Made with ❤️ by Tyler and Maggie</p>
   <nav>
     <ul>
       <li><a href="index.html">Home</a></li>
