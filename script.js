@@ -1,33 +1,39 @@
 // ===== RSVP BACKEND CONFIG =====
-// Paste your Google Apps Script Web App URL here once you've deployed it (see setup guide).
-// Until you do, the form will just show the confirmation message locally without saving anywhere.
+// Paste your Google Apps Script Web App URL here.
 const RSVP_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwh8oIhjumjeQHTkv23JaR2K31YGMKwaSPbErWPMxWu0wWBtlSMxJhCr2EHmzOqXvtSnw/exec';
 
-// Mobile nav toggle
+// ===== MOBILE NAV TOGGLE =====
 const toggle = document.getElementById('navToggle');
 const navList = document.getElementById('navList');
+
 if (toggle && navList) {
   toggle.addEventListener('click', () => {
     navList.classList.toggle('open');
     const expanded = navList.classList.contains('open');
-    toggle.setAttribute('aria-expanded', expanded);
+    toggle.setAttribute('aria-expanded', String(expanded));
   });
-  navList.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
-    navList.classList.remove('open');
-    toggle.setAttribute('aria-expanded', 'false');
-  }));
+
+  navList.querySelectorAll('a').forEach((a) => {
+    a.addEventListener('click', () => {
+      navList.classList.remove('open');
+      toggle.setAttribute('aria-expanded', 'false');
+    });
+  });
 }
 
-// Highlight the current page in the nav
+// ===== HIGHLIGHT CURRENT PAGE IN NAV =====
 const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-document.querySelectorAll('nav a').forEach(a => {
+
+document.querySelectorAll('nav a').forEach((a) => {
   const href = a.getAttribute('href');
-  if (href === currentPage) a.classList.add('active');
+  if (href === currentPage) {
+    a.classList.add('active');
+  }
 });
 
-// Cursive monogram — draws itself like handwriting over the marquee, then fills in,
-// with each letter stepping in after the last like a staircase.
+// ===== CURSIVE MONOGRAM ANIMATION =====
 const monogramLetters = document.querySelectorAll('.monogram-letter');
+
 if (monogramLetters.length) {
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -36,13 +42,12 @@ if (monogramLetters.length) {
       letter.style.fillOpacity = '1';
       return;
     }
-    // getComputedTextLength gives the advance width; scale it up since the
-    // actual stroked outline of a cursive glyph is longer than its advance width.
+
     const estimatedLength = letter.getComputedTextLength() * 2.6;
     letter.style.strokeDasharray = estimatedLength;
     letter.style.strokeDashoffset = estimatedLength;
 
-    const startDelay = 400 + i * 500; // each letter starts after the previous one
+    const startDelay = 400 + i * 500;
 
     requestAnimationFrame(() => {
       setTimeout(() => {
@@ -54,10 +59,12 @@ if (monogramLetters.length) {
   });
 }
 
-// Gallery sparkles — a few twinkling accents scattered over the photo wall
+// ===== GALLERY SPARKLES =====
 const sparkleWrap = document.querySelector('.gallery-sparkle-wrap');
+
 if (sparkleWrap && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
   const sparkleCount = 16;
+
   for (let i = 0; i < sparkleCount; i++) {
     const sparkle = document.createElement('span');
     sparkle.className = 'sparkle';
@@ -71,7 +78,7 @@ if (sparkleWrap && !window.matchMedia('(prefers-reduced-motion: reduce)').matche
   }
 }
 
-// Gallery 3D tilt — each card tilts toward the cursor individually on hover
+// ===== GALLERY 3D TILT =====
 const galleryTiles = document.querySelectorAll('.gallery-wall .tile');
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -81,8 +88,10 @@ if (galleryTiles.length && !prefersReducedMotion) {
       const rect = tile.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
+
       const rotateX = ((y - rect.height / 2) / (rect.height / 2)) * -10;
       const rotateY = ((x - rect.width / 2) / (rect.width / 2)) * 10;
+
       tile.style.transform = `perspective(700px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale3d(1.04,1.04,1.04)`;
     });
 
@@ -92,59 +101,128 @@ if (galleryTiles.length && !prefersReducedMotion) {
   });
 }
 
-// RSVP form (only present on rsvp.html)
+// ===== RSVP SUBMISSION HELPER =====
+function sendRsvpData(payload) {
+  const body = JSON.stringify(payload);
+
+  // Preferred: fire-and-forget submission
+  if (navigator.sendBeacon) {
+    try {
+      const blob = new Blob([body], { type: 'text/plain;charset=utf-8' });
+      const queued = navigator.sendBeacon(RSVP_ENDPOINT, blob);
+      if (queued) return true;
+    } catch (err) {
+      // Fall through to fetch below
+    }
+  }
+
+  // Fallback: no-cors fetch, do not wait for a response
+  try {
+    fetch(RSVP_ENDPOINT, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8'
+      },
+      body
+    });
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+// ===== RSVP FORM =====
 const form = document.getElementById('rsvpForm');
+
 if (form) {
   const msg = document.getElementById('formMsg');
   const guestCountInput = document.getElementById('guestCount');
   const additionalGuestsWrap = document.getElementById('additionalGuests');
 
-  // Keeps track of already-entered names/ages so they survive when the count changes
   let guestData = [];
 
   function renderGuestFields(count) {
-    const additionalCount = Math.max(0, count - 1); // guest 1 is the primary contact
+    const additionalCount = Math.max(0, count - 1);
 
-    // Resize the stored data array to match, preserving existing entries
-    while (guestData.length < additionalCount) guestData.push({ name: '', age: '' });
+    while (guestData.length < additionalCount) {
+      guestData.push({ name: '', over21: 'yes' });
+    }
     guestData.length = additionalCount;
 
-    additionalGuestsWrap.innerHTML = '';
-    if (additionalCount === 0) return;
+    if (!additionalGuestsWrap) return;
 
-    const label = document.createElement('p');
-    label.className = 'rsvp-section-label';
-    label.textContent = 'Additional Guests';
-    additionalGuestsWrap.appendChild(label);
+    additionalGuestsWrap.innerHTML = '';
 
     for (let i = 0; i < additionalCount; i++) {
       const card = document.createElement('div');
-      card.className = 'guest-card';
-      card.innerHTML = `
-        <h4>Guest ${i + 2}</h4>
-        <div class="two-col">
-          <div class="form-row">
-            <label for="guestName${i}">Full Name</label>
-            <input type="text" id="guestName${i}" placeholder="Guest name" value="${guestData[i].name}">
-          </div>
-          <div class="form-row">
-            <label for="guestAge${i}">Age</label>
-            <input type="number" id="guestAge${i}" min="0" max="120" placeholder="Age" value="${guestData[i].age}">
-          </div>
-        </div>
-      `;
-      card.querySelector(`#guestName${i}`).addEventListener('input', (e) => {
+      card.className = 'guest-card form-row';
+
+      const label = document.createElement('label');
+      label.textContent = `Guest ${i + 2} Name`;
+
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.className = 'guest-name-input';
+      nameInput.id = `guestName${i}`;
+      nameInput.name = `guestName${i}`;
+      nameInput.placeholder = 'Full name';
+      nameInput.value = guestData[i]?.name || '';
+      nameInput.addEventListener('input', (e) => {
         guestData[i].name = e.target.value;
       });
-      card.querySelector(`#guestAge${i}`).addEventListener('input', (e) => {
-        guestData[i].age = e.target.value;
+
+      const over21Label = document.createElement('label');
+      over21Label.textContent = '21 or older?';
+
+      const over21Wrap = document.createElement('div');
+      over21Wrap.className = 'radio-group';
+
+      const yesLabel = document.createElement('label');
+      const yesInput = document.createElement('input');
+      yesInput.type = 'radio';
+      yesInput.name = `guestOver21${i}`;
+      yesInput.value = 'yes';
+      yesInput.checked = guestData[i]?.over21 !== 'no';
+      yesInput.addEventListener('change', (e) => {
+        guestData[i].over21 = e.target.value;
       });
+
+      const yesText = document.createElement('span');
+      yesText.textContent = 'Yes';
+      yesLabel.appendChild(yesInput);
+      yesLabel.appendChild(yesText);
+
+      const noLabel = document.createElement('label');
+      const noInput = document.createElement('input');
+      noInput.type = 'radio';
+      noInput.name = `guestOver21${i}`;
+      noInput.value = 'no';
+      noInput.checked = guestData[i]?.over21 === 'no';
+      noInput.addEventListener('change', (e) => {
+        guestData[i].over21 = e.target.value;
+      });
+
+      const noText = document.createElement('span');
+      noText.textContent = 'No';
+      noLabel.appendChild(noInput);
+      noLabel.appendChild(noText);
+
+      over21Wrap.appendChild(yesLabel);
+      over21Wrap.appendChild(noLabel);
+
+      card.appendChild(label);
+      card.appendChild(nameInput);
+      card.appendChild(over21Label);
+      card.appendChild(over21Wrap);
+
       additionalGuestsWrap.appendChild(card);
     }
   }
 
   if (guestCountInput) {
     renderGuestFields(parseInt(guestCountInput.value, 10) || 1);
+
     guestCountInput.addEventListener('input', () => {
       let count = parseInt(guestCountInput.value, 10);
       if (isNaN(count) || count < 1) count = 1;
@@ -159,17 +237,17 @@ if (form) {
   const phoneError = document.getElementById('phoneError');
 
   function isValidEmail(value) {
-    // Reasonable general-purpose email check (not exhaustive RFC 5322, but catches real mistakes)
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
   }
 
   function isValidPhone(value) {
     const digitsOnly = value.replace(/\D/g, '');
-    // Accepts formatting like spaces, dashes, parens, +country code — just checks digit count
     return digitsOnly.length >= 7 && digitsOnly.length <= 15;
   }
 
   function setFieldValidity(input, errorEl, valid) {
+    if (!input || !errorEl) return;
+
     if (valid) {
       input.classList.remove('invalid');
       errorEl.classList.remove('show');
@@ -179,19 +257,30 @@ if (form) {
     }
   }
 
-  // Clear the error as soon as the person starts fixing it
-  emailInput.addEventListener('input', () => {
-    if (isValidEmail(emailInput.value)) setFieldValidity(emailInput, emailError, true);
-  });
-  phoneInput.addEventListener('input', () => {
-    if (isValidPhone(phoneInput.value)) setFieldValidity(phoneInput, phoneError, true);
-  });
+  if (emailInput && emailError) {
+    emailInput.addEventListener('input', () => {
+      if (isValidEmail(emailInput.value)) {
+        setFieldValidity(emailInput, emailError, true);
+      }
+    });
+  }
+
+  if (phoneInput && phoneError) {
+    phoneInput.addEventListener('input', () => {
+      if (isValidPhone(phoneInput.value)) {
+        setFieldValidity(phoneInput, phoneError, true);
+      }
+    });
+  }
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
 
+    if (!emailInput || !phoneInput || !msg) return;
+
     const emailValid = isValidEmail(emailInput.value);
     const phoneValid = isValidPhone(phoneInput.value);
+
     setFieldValidity(emailInput, emailError, emailValid);
     setFieldValidity(phoneInput, phoneError, phoneValid);
 
@@ -201,60 +290,61 @@ if (form) {
     }
 
     const submitBtn = form.querySelector('.rsvp-submit');
-    const originalLabel = submitBtn.textContent;
+    const originalLabel = submitBtn ? submitBtn.textContent : 'Send RSVP';
 
-    // Not configured yet — just show the confirmation locally so the form still feels done.
-    if (!RSVP_ENDPOINT || RSVP_ENDPOINT.indexOf('PASTE_YOUR') !== -1) {
-      msg.textContent = 'Thank you! Your reply has been recorded with love. 🌿';
-      msg.style.color = '';
-      msg.style.display = 'block';
-      submitBtn.textContent = 'Sent';
-      return;
-    }
+    const primaryOver21Radio = form.querySelector('input[name="primaryOver21"]:checked');
+    const attendingRadio = form.querySelector('input[name="attending"]:checked');
 
     const additionalGuests = guestData
-      .filter(g => g.name || g.age)
-      .map((g, i) => `Guest ${i + 2}: ${g.name || '(no name)'}${g.age ? ` (age ${g.age})` : ''}`)
+      .filter((g) => g.name && g.name.trim())
+      .map((g, i) => `Guest ${i + 2}: ${g.name} (21+: ${g.over21})`)
       .join(' | ');
 
     const payload = {
       timestamp: new Date().toISOString(),
-      fullName: document.getElementById('fullName').value,
+      fullName: document.getElementById('fullName') ? document.getElementById('fullName').value : '',
       email: emailInput.value,
       phone: phoneInput.value,
-      primaryAge: document.getElementById('primaryAge').value,
-      attending: form.querySelector('input[name="attending"]:checked').value,
-      guestCount: guestCountInput.value,
+      primaryOver21: primaryOver21Radio ? primaryOver21Radio.value : '',
+      attending: attendingRadio ? attendingRadio.value : '',
+      guestCount: guestCountInput ? guestCountInput.value : '1',
       additionalGuests,
-      message: document.getElementById('message').value
+      allergies: document.getElementById('allergies') ? document.getElementById('allergies').value : '',
+      message: document.getElementById('message') ? document.getElementById('message').value : ''
     };
 
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Sending…';
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending...';
+    }
 
-    fetch(RSVP_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids a CORS preflight
-      body: JSON.stringify(payload)
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data && data.result === 'success') {
-          msg.textContent = 'Thank you! Your reply has been recorded with love. 🌿';
-          msg.style.color = '';
-          msg.style.display = 'block';
-          submitBtn.textContent = 'Sent';
-          form.reset();
-        } else {
-          throw new Error((data && data.error) || 'Unknown error');
-        }
-      })
-      .catch(() => {
-        msg.textContent = "Something went wrong sending that — please try again, or reach out to us directly.";
-        msg.style.color = 'var(--rust)';
-        msg.style.display = 'block';
+    const sent = sendRsvpData(payload);
+
+    if (sent) {
+      msg.textContent = 'Thank you. Your reply has been recorded.';
+      msg.style.color = '';
+      msg.style.display = 'block';
+
+      form.reset();
+      guestData = [];
+
+      if (guestCountInput) {
+        renderGuestFields(1);
+      }
+
+      if (submitBtn) {
+        submitBtn.textContent = 'Sent';
+        submitBtn.disabled = false;
+      }
+    } else {
+      msg.textContent = 'Something went wrong sending that. Please try again or reach out to us directly.';
+      msg.style.color = 'var(--rust)';
+      msg.style.display = 'block';
+
+      if (submitBtn) {
         submitBtn.disabled = false;
         submitBtn.textContent = originalLabel;
-      });
+      }
+    }
   });
 }
