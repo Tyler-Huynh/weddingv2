@@ -591,3 +591,18 @@ footer nav a::after{background:var(--gold);}
 #siteContent[hidden] {
   display: none !important;
 }
+
+.page-banner .rsvp-deadline{
+  font-size:1.5rem;
+  font-weight:500;
+  color:var(--rust);
+  letter-spacing:.08em;
+  margin-top:14px;
+}
+
+@media (max-width:600px){
+  .page-banner .rsvp-deadline{
+    font-size:1.1rem;
+    letter-spacing:.05em;
+  }
+}
